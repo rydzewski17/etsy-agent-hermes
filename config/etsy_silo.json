@@ -1,0 +1,53 @@
+{
+  "silo_name": "etsy-hermes",
+  "shop_account": "rydzewski17",
+  "mode": "draft_only",
+  "auto_activate": false,
+  "require_human_review_until_successful_listings": 10,
+  "max_new_listings_per_run": 3,
+  "max_new_listings_per_day": 5,
+  "allowed_product_type": "svg_cut_file_bundle",
+  "primary_category": "Craft Supplies & Tools > Patterns & How To > Craft Machine Files > Cutting Machine Files",
+  "taxonomy_id": 12394,
+  "minimum_price": 1.99,
+  "maximum_price": 9.99,
+  "default_quantity": 999,
+  "required_listing_assets": [
+    "digital_file_url",
+    "preview_image_url",
+    "title",
+    "description",
+    "tags",
+    "price",
+    "taxonomy_id"
+  ],
+  "blocked_terms_policy": {
+    "description": "Avoid trademarked, copyrighted, brand, celebrity, sports team, university, and protected phrases unless explicitly licensed.",
+    "examples": [
+      "Disney",
+      "Taylor Swift",
+      "NFL",
+      "NBA",
+      "Barbie",
+      "Stanley Cup",
+      "Cincinnati Bengals",
+      "Ohio State"
+    ]
+  },
+  "publish_rules": {
+    "create_drafts_allowed": true,
+    "activate_listings_allowed": false,
+    "activation_requires_manual_config_change": true,
+    "activation_requires_validation_pass": true,
+    "activation_requires_file_upload_success": true,
+    "activation_requires_image_upload_success": true
+  },
+  "cloud_only_systems": [
+    "GitHub Actions",
+    "GitHub Issues",
+    "GitHub Pull Requests",
+    "Make.com",
+    "Etsy via Make OAuth",
+    "Anthropic API via GitHub Secrets"
+  ]
+}
