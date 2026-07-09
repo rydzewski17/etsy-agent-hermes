@@ -38,6 +38,26 @@ Stages 1-6 chain automatically via `workflow_run` triggers. Stage 1
 runs weekly (Monday), stage 7 runs nightly. Everything is also
 manually triggerable from the Actions tab (`workflow_dispatch`).
 
+## Dry-run workflow
+
+Use **Actions → Etsy-Hermes E2E Dry Run → Run workflow** to test the
+cloud pipeline without calling Etsy, Make.com, Anthropic, or the Etsy
+API.
+
+The dry run:
+
+1. Creates one safe sample SVG design.
+2. Simulates a ready-to-publish listing brief.
+3. Runs bundle preparation.
+4. Generates a ZIP digital download bundle.
+5. Generates a PNG preview image.
+6. Builds the Etsy/Make publish payload.
+7. Validates the payload against `config/etsy_silo.json`.
+8. Uploads a dry-run report and generated assets as a workflow artifact.
+
+This is the safest first test before trying a real Make.com draft-listing
+run.
+
 ## One-time setup
 
 ### 1. Register a narrow, read-only Etsy app
