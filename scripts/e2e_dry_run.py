@@ -27,6 +27,11 @@ import shutil
 from datetime import datetime, timezone
 from typing import Any, Dict
 
+# publish.py expects MAKE_WEBHOOK_URL to exist at import time. The dry run
+# never posts to Make.com, so use a harmless placeholder to keep this
+# workflow independent of secrets.
+os.environ.setdefault("MAKE_WEBHOOK_URL", "https://example.com/etsy-hermes-dry-run")
+
 import prepare_bundles
 from publish import build_payload
 from validate_publish_payload import validate_payload
