@@ -1,0 +1,25 @@
+name: 2 - Design Generation
+on:
+  workflow_run:
+    workflows: ["1 - Trend Scan"]
+    types: [completed]
+  workflow_dispatch: {}
+jobs:
+  design:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - run: pip install -r requirements.txt
+      - run: python scripts/design_gen.py
+        env:
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+      - name: Commit designs
+        run: |
+          git config user.name "hermes-agent-bot"
+          git config user.email "actions@github.com"
+          git add data/
+          git diff --quiet --cached || git commit -m "chore: generated designs"
+          git push

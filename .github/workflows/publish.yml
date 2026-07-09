@@ -1,0 +1,37 @@
+name: 6 - Publish to Etsy
+on:
+  workflow_run:
+    workflows: ["5 - Pricing"]
+    types: [completed]
+  workflow_dispatch: {}
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - run: pip install -r requirements.txt
+      - name: Prepare bundles (zip designs)
+        run: python scripts/prepare_bundles.py
+      - name: Commit + push bundle files
+        run: |
+          git config user.name "hermes-agent-bot"
+          git config user.email "actions@github.com"
+          git add data/
+          git diff --quiet --cached || git commit -m "chore: prepared publish bundles"
+          git push
+      - name: Publish via Make.com relay
+        run: python scripts/publish.py
+        env:
+          MAKE_WEBHOOK_URL: ${{ secrets.MAKE_WEBHOOK_URL }}
+      - name: Commit publish results
+        run: |
+          git config user.name "hermes-agent-bot"
+          git config user.email "actions@github.com"
+          git add data/
+          git diff --quiet --cached || git commit -m "chore: published listings"
+          git push

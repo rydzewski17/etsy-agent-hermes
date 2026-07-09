@@ -1,0 +1,25 @@
+name: 4 - Listing Copy
+on:
+  workflow_run:
+    workflows: ["3 - QC Filter"]
+    types: [completed]
+  workflow_dispatch: {}
+jobs:
+  copywrite:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - run: pip install -r requirements.txt
+      - run: python scripts/listing_copy.py
+        env:
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+      - name: Commit copy
+        run: |
+          git config user.name "hermes-agent-bot"
+          git config user.email "actions@github.com"
+          git add data/
+          git diff --quiet --cached || git commit -m "chore: listing copy"
+          git push
