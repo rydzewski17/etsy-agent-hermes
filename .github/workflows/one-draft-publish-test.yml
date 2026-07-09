@@ -1,0 +1,88 @@
+name: Etsy-Hermes One Draft Publish Test
+
+on:
+  workflow_dispatch:
+    inputs:
+      confirm_make_ready:
+        description: "Type YES_CREATE_ONE_DRAFT to send exactly one draft listing to Make/Etsy"
+        required: true
+        type: string
+      max_listings:
+        description: "Safety cap. Must be 1 for this workflow."
+        required: true
+        default: "1"
+        type: string
+
+jobs:
+  one-draft-test:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+
+    steps:
+      - name: Refuse unsafe confirmation
+        if: ${{ github.event.inputs.confirm_make_ready != 'YES_CREATE_ONE_DRAFT' || github.event.inputs.max_listings != '1' }}
+        run: |
+          echo "This workflow only runs when confirm_make_ready=YES_CREATE_ONE_DRAFT and max_listings=1."
+          exit 1
+
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install dependencies
+        run: pip install -r requirements.txt
+
+      - name: Safety check config remains draft-only
+        run: |
+          python - <<'PY'
+          import json
+          with open('config/etsy_silo.json') as f:
+              config = json.load(f)
+          assert config.get('mode') == 'draft_only', 'mode must remain draft_only'
+          assert config.get('auto_activate') is False, 'auto_activate must remain false'
+          assert config.get('publish_rules', {}).get('activate_listings_allowed') is False, 'activation must remain disabled'
+          print('Config safety check passed.')
+          PY
+
+      - name: Prepare bundles and PNG previews
+        run: python scripts/prepare_bundles.py
+
+      - name: Commit prepared bundle assets before Make fetch
+        run: |
+          git config user.name "hermes-agent-bot"
+          git config user.email "actions@github.com"
+          git add data/
+          git diff --quiet --cached || git commit -m "chore: prepare one draft publish assets"
+          git push
+
+      - name: Send one validated draft listing to Make.com
+        run: python scripts/run_one_draft_publish.py
+        env:
+          MAKE_WEBHOOK_URL: ${{ secrets.MAKE_WEBHOOK_URL }}
+
+      - name: Commit draft publish test results
+        if: success()
+        run: |
+          git config user.name "hermes-agent-bot"
+          git config user.email "actions@github.com"
+          git add data/
+          git diff --quiet --cached || git commit -m "chore: record one draft publish test"
+          git push
+
+      - name: Upload draft publish test artifacts
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: etsy-hermes-one-draft-publish-test
+          path: |
+            data/draft_publish_test_results.json
+            data/drafts_pending_review.json
+            data/publish_queue.json
+            data/bundles/*_bundle.zip
+            data/previews/*_preview.png
+          if-no-files-found: warn
